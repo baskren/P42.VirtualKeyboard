@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>P42.VirtualKeyboard</AssemblyName>
+    <RootNamespace>P42.VirtualKeyboard</RootNamespace>
+    <NoWarn>Uno0001;VSX1000;CA1416</NoWarn>
+  </PropertyGroup>
+
+  <!-- NUGET PACKAGE GENERATION -->
+  <PropertyGroup Condition=" $(P42_LocalNuGetFolderPath) != '' AND  '$(OS)' == 'Windows_NT'  AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('android')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('ios')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('mac')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('windows')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('tizen')) ">
+   
+    <Version>4.9.45</Version>
+    <PackageId Condition=" $(P42_TargetOnlyThisPlatform.ToLower.Contains('wasm')) ">$(MSBuildProjectName).Wasm</PackageId>
+  
+  	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+  	<EmbedUntrackedSources>true</EmbedUntrackedSources>
+  	<IncludeSymbols>true</IncludeSymbols>
+  	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally> 
+
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Ben Askren</Authors>
+    <Company>42nd Parallel, LLC</Company>
+    <Description>Methods for Showing/Hiding a device's virtual keyboard and Events for when device's virtual keyboard is shown/hidding/resized</Description>
+    <Copyright>2022, 42nd Parallel</Copyright>
+    <PackageProjectUrl>https://github.com/baskren/P42.VirtualKeyboard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/baskren/P42.VirtualKeyboard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageIcon>P42.icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>iOS Android WinUI3 Virtual Keyboard</PackageTags>
+  </PropertyGroup>
+
+  <!-- SHARED RESOURCES -->
+  <ItemGroup>
+    <None Include="..\P42.icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
