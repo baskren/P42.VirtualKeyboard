@@ -10,42 +10,69 @@ namespace P42.VirtualKeyboard
 {
     public class AndroidService : IKeyboardService
     {
-        
-        Android.App.Activity Activity => Application.Context as Activity;
-
-        public bool IsHardwareKeyboardActive
+        static Activity _activity;
+        static Activity Activity
         {
             get
             {
-                return Activity.Resources.Configuration.HardKeyboardHidden == Android.Content.Res.HardKeyboardHidden.No;
+                if (_activity is null)
+                    throw new Exception("P42.VirtualKeyboard not initialized.  Call P42.VirtualKeyboard.AndroidService.Init(this) in MainActivity.Android.cs:");
+                return _activity;
             }
+            set => _activity = value;
         }
 
-        public void Hide()
+        View _rootView;
+        View RootView
         {
-            if (Android.App.Application.Context.GetSystemService(Context.InputMethodService) is InputMethodManager im
-                && Application.Context is Activity activity)
+            get
             {
-                var token = activity.CurrentFocus?.WindowToken;
-                im.HideSoftInputFromWindow(token, HideSoftInputFlags.NotAlways);
+                if (_rootView is null)
+                {
+                    var task = Task.Run(GetRootViewAsync);
+                    task.Wait();
+                    _rootView = task.Result;
+                }
+                return _rootView;
             }
+            set => _rootView = value;
         }
+
+        static async Task<View> GetRootViewAsync()
+        {
+            while (Activity.FindViewById(Android.Resource.Id.Content) is not View)
+                await Task.Delay(200);
+
+            return Activity.FindViewById(Android.Resource.Id.Content) as View;
+        }
+
+        public bool IsHardwareKeyboardActive
+            => Activity.Resources.Configuration.HardKeyboardHidden == Android.Content.Res.HardKeyboardHidden.No;
+
+        public void Hide()
+            => RootView.WindowInsetsController.Hide(WindowInsets.Type.Ime());
+        
+
+        public void Show()
+            => RootView.WindowInsetsController.Show(WindowInsets.Type.Ime());
+        
+
+        public static void Init(Activity activity)
+            => Activity = activity;
 
         public AndroidService()
         {
-            Android.Views.View root = Activity.FindViewById(Android.Resource.Id.Content);
-
-
-            var rootLayoutListener = new RootLayoutListener(root);
+            var rootLayoutListener = new RootLayoutListener(RootView);
             rootLayoutListener.HeightChanged += OnHeightChanged;
-            root.ViewTreeObserver.AddOnGlobalLayoutListener(rootLayoutListener);
+            RootView.ViewTreeObserver.AddOnGlobalLayoutListener(rootLayoutListener);
         }
 
 
         double _lastHeight;
         private void OnHeightChanged(object sender, double e)
         {
-            Height = e;
+            
+            Height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
             if (Height > 0 && _lastHeight <= 0)
                 Service.OnVisiblityChange(KeyboardVisibilityChange.Shown);
             else if (_lastHeight > 0 && Height <= 0)
@@ -112,6 +139,10 @@ namespace P42.VirtualKeyboard
 
         public RootLayoutListener(Android.Views.View view)
         {
+
+            while (view.Parent is ViewGroup viewGroup)
+                view = viewGroup;
+
             _rootView = view;
             _startRect = new Android.Graphics.Rect();
             _rootView.GetWindowVisibleDisplayFrame(_startRect);
@@ -123,6 +154,10 @@ namespace P42.VirtualKeyboard
             _rootView.GetWindowVisibleDisplayFrame(currentRect);
 
             var height = _startRect.Height() - currentRect.Height();
+
+
+            System.Diagnostics.Debug.WriteLine($"RootLayoutListener.OnGlobalLayout : [{_startRect.Height()}] [{currentRect.Height()}]");
+
 
             HeightChanged?.Invoke(this, height / Scale);
         }

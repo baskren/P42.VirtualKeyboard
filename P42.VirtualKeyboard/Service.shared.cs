@@ -11,6 +11,9 @@ namespace P42.VirtualKeyboard
     /// </summary>
     public static class Service
     {
+        static Service()
+            => Init();
+
         internal static bool IsAvailable => Instance is not null;
 
         static IKeyboardService _instance;
@@ -19,7 +22,7 @@ namespace P42.VirtualKeyboard
             get
             {
                 if (_instance == null)
-                    PlatformInit();
+                    Init();
                 return _instance;
             }
             set => _instance = value;
@@ -27,36 +30,26 @@ namespace P42.VirtualKeyboard
 
 #if __ANDROID__
 
-        static void PlatformInit()
+        public static void Init()
             => Instance = new AndroidService();
 
 
 #elif __IOS__
 
-        static void PlatformInit()
+        public static void Init()
             => Instance = new IosService();
 
 
 #elif WINDOWS
 
-        static void PlatformInit()
+        public static void Init()
             => Instance = new WinUiService();
         
 #else
 
-        static void PlatformInit() { }
+        public static void Init() { }
 #endif
 
-        /*
-        /// <summary>
-        /// Activates the Keyboard Service (required to monitor software keyboard height)
-        /// </summary>
-        public static void Activate()
-        {
-            if (Instance == null)
-                Console.WriteLine("KEYBOARD SERVICE IS NOT AVAILABLE");
-        }
-        */
 
         /// <summary>
         /// Forces the device's on screen keyboard to be hidden

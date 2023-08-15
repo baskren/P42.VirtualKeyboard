@@ -3,22 +3,16 @@ using Foundation;
 
 namespace P42.VirtualKeyboard
 {
+    // https://stackoverflow.com/questions/31991873/how-to-reliably-detect-if-an-external-keyboard-is-connected-on-ios-9
+
     /// <summary>
     /// Keyboard service.
     /// </summary>
     public class IosService : IKeyboardService
     {
         public bool IsHardwareKeyboardActive
-        {
-            get
-            {
-                return false;
-            }
-        }
+            => GameController.GCKeyboard.CoalescedKeyboard != null;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:Forms9Patch.iOS.KeyboardService"/> class.
-        /// </summary>
         public IosService()
         {
             UIKeyboard.Notifications.ObserveWillHide(OnHidden);
@@ -57,7 +51,6 @@ namespace P42.VirtualKeyboard
             var kbSize = e.FrameEnd;
             if (!_hidden)
                 Height = kbSize.Height;
-
         }
 
 
@@ -65,19 +58,12 @@ namespace P42.VirtualKeyboard
         /// Hide this instance.
         /// </summary>
         public void Hide()
-        {
-            UIApplication.SharedApplication.KeyWindow.EndEditing(true);
-        }
+            => UIApplication.SharedApplication.KeyWindow.EndEditing(true);
+        
+
 
         public string LanguageRegion
-        {
-            get
-            {
-                //var defs = NSUserDefaults.StandardUserDefaults;
-                return UITextInputMode.CurrentInputMode.PrimaryLanguage;
-                //return null;
-            }
-        }
+            =>UITextInputMode.CurrentInputMode.PrimaryLanguage;
 
         double _height;
         public double Height

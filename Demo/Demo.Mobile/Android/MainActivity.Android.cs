@@ -13,5 +13,13 @@ namespace Demo.Droid
     )]
     public class MainActivity : Microsoft.UI.Xaml.ApplicationActivity
     {
+        protected override void OnCreate(Bundle bundle)
+        {
+            base.OnCreate(bundle);
+
+            P42.VirtualKeyboard.AndroidService.Init(this);
+
+            
+        }
     }
 }

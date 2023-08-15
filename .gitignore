@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+._.DS_Store
+._P42.VirtualKeyboard.sln
+*.DS_Store
