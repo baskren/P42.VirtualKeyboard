@@ -13,7 +13,9 @@ namespace P42.VirtualKeyboard
 {
 	class WinUiService : IKeyboardService, IDisposable
 	{
-		public bool IsHardwareKeyboardActive
+        //https://learn.microsoft.com/en-us/windows/apps/design/input/respond-to-the-presence-of-the-touch-keyboard
+
+        public bool IsHardwareKeyboardActive
 		{
 			get
 			{
@@ -29,8 +31,26 @@ namespace P42.VirtualKeyboard
 		/// </summary>
 		public WinUiService()
 		{
-			InputPane.GetForCurrentView().Hiding += KeyboardService_Hiding;
-			InputPane.GetForCurrentView().Showing += KeyboardService_Showing;
+
+			Task.Run(() =>
+			{
+				try
+				{
+					while (InputPane.GetForCurrentView() is not InputPane)
+						Task.Delay(200);
+
+					var inputPane = InputPane.GetForCurrentView();
+
+					inputPane.Hiding += KeyboardService_Hiding;
+					inputPane.Showing += KeyboardService_Showing;
+				}
+				catch(Exception)
+				{
+					System.Diagnostics.Debug.WriteLine("VirtualKeyboard not yet supported in WinUI");
+					Console.WriteLine("VirtualKeyboard not yet supported in WinUI");
+                }
+            });
+
 		}
 
 		private void OnOrienationChanged(DisplayInformation sender, object args)
