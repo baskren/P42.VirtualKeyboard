@@ -89,8 +89,8 @@ namespace P42.VirtualKeyboard
         public static bool IsVisible => Instance?.IsVisible ?? false;
 
 
-        internal static void OnVisiblityChange(KeyboardVisibilityChange state)
-            => IsVisibleChanged?.Invoke(null, state == KeyboardVisibilityChange.Shown);
+        internal static void OnVisiblityChange(bool isVisible)
+            => IsVisibleChanged?.Invoke(null, isVisible);
 
         internal static void OnHeightChanged(double height)
             => HeightChanged?.Invoke(null, height);

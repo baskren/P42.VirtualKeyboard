@@ -43,10 +43,10 @@ namespace P42.VirtualKeyboard
 
         static async Task<View> GetRootViewAsync()
         {
-            while (Activity.FindViewById(Android.Resource.Id.Content) is not View)
+            while (Activity.FindViewById(Android.Resource.Id.Content) is null)
                 await Task.Delay(200);
 
-            return Activity.FindViewById(Android.Resource.Id.Content) as View;
+            return Activity.FindViewById(Android.Resource.Id.Content);
         }
 
         public bool IsHardwareKeyboardActive
@@ -71,17 +71,11 @@ namespace P42.VirtualKeyboard
         }
 
 
-        double _lastHeight;
         private void OnHeightChanged(object sender, double e)
-        {
-            Height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
-            if (Height > Threshold && _lastHeight <= Threshold)
-                Service.OnVisiblityChange(KeyboardVisibilityChange.Shown);
-            else if (_lastHeight > Threshold && Height <= Threshold)
-                Service.OnVisiblityChange(KeyboardVisibilityChange.Hidden);
-            _lastHeight = Height;
-        }
+            => Height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
 
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1422:Validate platform compatibility", Justification = "<Pending>")]
         public string LanguageRegion
         {
             get
@@ -93,9 +87,7 @@ namespace P42.VirtualKeyboard
                 if (Android.OS.Build.VERSION.SdkInt > Android.OS.BuildVersionCodes.M)
                     result = ims?.LanguageTag.Replace('_', '-');
                 else
-#pragma warning disable CS0618 // Type or member is obsolete
                     result = ims?.Locale.Replace('_', '-');
-#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -119,21 +111,38 @@ namespace P42.VirtualKeyboard
             get => _height;
             private set
             {
-                if (System.Math.Abs(_height - value) > 0.1)
+                if (Math.Abs(_height - value) > 0.1)
                 {
                     _height = value;
                     Service.OnHeightChanged(_height);
+                    IsVisible = value > Threshold;
                 }
                 _height = value;
             }
         }
 
+        bool _isVisible;
+        bool _isVisibleSet;
         public bool IsVisible
         {
             get
             {
-                var height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
-                return height > Threshold;
+                if (!_isVisibleSet)
+                {
+                    var height = RootView.RootWindowInsets?.GetInsets(WindowInsets.Type.Ime()).Bottom ?? 0;
+                    _isVisible = height > Threshold;
+                    _isVisibleSet = true;
+                }
+                return _isVisible;
+            }
+            set
+            {
+                if (_isVisible != value)
+                {
+                    _isVisible = value;
+                    _isVisibleSet = true;
+                    Service.OnVisiblityChange(_isVisible);
+                }
             }
         }
     }
@@ -143,12 +152,12 @@ namespace P42.VirtualKeyboard
         //int[] _discrepancy = { 0 };
 
         readonly Android.Graphics.Rect _startRect;
-        readonly Android.Views.View _rootView;
+        readonly View _rootView;
 
         public event EventHandler<double> HeightChanged;
 
 
-        public RootLayoutListener(Android.Views.View view)
+        public RootLayoutListener(View view)
         {
 
             while (view.Parent is ViewGroup viewGroup)
@@ -161,7 +170,7 @@ namespace P42.VirtualKeyboard
 
         public void OnGlobalLayout()
         {
-            Android.Graphics.Rect currentRect = new Android.Graphics.Rect();
+            Android.Graphics.Rect currentRect = new();
             _rootView.GetWindowVisibleDisplayFrame(currentRect);
 
             var height = _startRect.Height() - currentRect.Height();
@@ -189,7 +198,7 @@ namespace P42.VirtualKeyboard
         {
             get
             {
-                _displayMetricsReference = _displayMetricsReference ?? new Java.Lang.Ref.WeakReference(global::Android.App.Application.Context.Resources.DisplayMetrics);
+                _displayMetricsReference ??= new Java.Lang.Ref.WeakReference(global::Android.App.Application.Context.Resources.DisplayMetrics);
                 var displayMetrics = (Android.Util.DisplayMetrics)_displayMetricsReference.Get();
                 if (displayMetrics == null)
                 {
