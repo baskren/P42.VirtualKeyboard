@@ -29,5 +29,7 @@ namespace P42.VirtualKeyboard
         /// </summary>
         /// <value>The height.</value>
         double Height { get; }
+
+        bool IsVisible { get; }
     }
 }

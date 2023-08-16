@@ -10,6 +10,9 @@ namespace P42.VirtualKeyboard
 {
     public class AndroidService : IKeyboardService
     {
+
+        const double Threshold = 50;
+
         static Activity _activity;
         static Activity Activity
         {
@@ -71,11 +74,10 @@ namespace P42.VirtualKeyboard
         double _lastHeight;
         private void OnHeightChanged(object sender, double e)
         {
-            
             Height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
-            if (Height > 0 && _lastHeight <= 0)
+            if (Height > Threshold && _lastHeight <= Threshold)
                 Service.OnVisiblityChange(KeyboardVisibilityChange.Shown);
-            else if (_lastHeight > 0 && Height <= 0)
+            else if (_lastHeight > Threshold && Height <= Threshold)
                 Service.OnVisiblityChange(KeyboardVisibilityChange.Hidden);
             _lastHeight = Height;
         }
@@ -115,7 +117,7 @@ namespace P42.VirtualKeyboard
         public double Height
         {
             get => _height;
-            set
+            private set
             {
                 if (System.Math.Abs(_height - value) > 0.1)
                 {
@@ -123,6 +125,15 @@ namespace P42.VirtualKeyboard
                     Service.OnHeightChanged(_height);
                 }
                 _height = value;
+            }
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                var height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
+                return height > Threshold;
             }
         }
     }

@@ -8,17 +8,7 @@ namespace Demo
         {
             this.InitializeComponent();
 
-
-        }
-
-        private void OnVirutalKeyboardShown(object? sender, EventArgs e)
-        {
-            _textBlock.Text = "KEYBOARD SHOWN";
-        }
-
-        private void OnVirtualKeyboardHidden(object? sender, EventArgs e)
-        {
-            _textBlock.Text = "KEYBOARD HIDDEN";
+            UpdateVisibleText();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -26,16 +16,19 @@ namespace Demo
             base.OnNavigatedTo(e);
 
 
-            P42.VirtualKeyboard.Service.Hidden += OnVirtualKeyboardHidden;
-            P42.VirtualKeyboard.Service.Shown += OnVirutalKeyboardShown;
+            P42.VirtualKeyboard.Service.IsVisibleChanged += OnVirtualKeyboardIsVisibleChanged;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
 
-            P42.VirtualKeyboard.Service.Hidden -= OnVirtualKeyboardHidden;
-            P42.VirtualKeyboard.Service.Shown -= OnVirutalKeyboardShown;
+            P42.VirtualKeyboard.Service.IsVisibleChanged -= OnVirtualKeyboardIsVisibleChanged;
         }
+
+        private void OnVirtualKeyboardIsVisibleChanged(object? sender, bool e)
+            => UpdateVisibleText();
+
+        void UpdateVisibleText() => _textBlock.Text = P42.VirtualKeyboard.Service.IsVisible ? "KEYBOARD SHOWN" : "KEYBOARD HIDDEN";
     }
 }

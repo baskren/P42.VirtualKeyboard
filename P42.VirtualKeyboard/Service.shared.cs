@@ -2,6 +2,7 @@
 #if __ANDROID__
 using Android.Content;
 #endif
+using Microsoft.UI.Xaml;
 using System;
 
 namespace P42.VirtualKeyboard
@@ -54,36 +55,12 @@ namespace P42.VirtualKeyboard
         /// <summary>
         /// Forces the device's on screen keyboard to be hidden
         /// </summary>
-        public static void Hide() => Instance.Hide();
-
-
-
-        internal static void OnVisiblityChange(KeyboardVisibilityChange state)
-        {
-            switch (state)
-            {
-                case KeyboardVisibilityChange.Shown:
-                    Shown?.Invoke(null, EventArgs.Empty);
-                    break;
-                case KeyboardVisibilityChange.Hidden:
-                    Hidden?.Invoke(null, EventArgs.Empty);
-                    break;
-            }
-        }
-
-        internal static void OnHeightChanged(double height)
-        {
-            HeightChanged?.Invoke(null, height);
-        }
+        public static void Hide() => Instance?.Hide();
 
         /// <summary>
         /// Occurs when hidden.
         /// </summary>
-        public static event EventHandler Hidden;
-        /// <summary>
-        /// Occurs when shown.
-        /// </summary>
-        public static event EventHandler Shown;
+        public static event EventHandler<bool> IsVisibleChanged;
 
         /// <summary>
         /// Occurs when virtual keyboard height has changed.
@@ -107,6 +84,18 @@ namespace P42.VirtualKeyboard
         /// </summary>
         /// <value>The height.</value>
         public static double Height => Instance?.Height ?? 0.0;
+
+
+        public static bool IsVisible => Instance?.IsVisible ?? false;
+
+
+        internal static void OnVisiblityChange(KeyboardVisibilityChange state)
+            => IsVisibleChanged?.Invoke(null, state == KeyboardVisibilityChange.Shown);
+
+        internal static void OnHeightChanged(double height)
+            => HeightChanged?.Invoke(null, height);
+
+
 
     }
 

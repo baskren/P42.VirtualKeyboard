@@ -10,6 +10,9 @@ namespace P42.VirtualKeyboard
     /// </summary>
     public class IosService : IKeyboardService
     {
+        const double Threshold = 50;
+
+
         public bool IsHardwareKeyboardActive
             => GameController.GCKeyboard.CoalescedKeyboard != null;
 
@@ -77,6 +80,14 @@ namespace P42.VirtualKeyboard
                     Service.OnHeightChanged(_height);
                 }
                 _height = value;
+            }
+        }
+
+        public bool IsVisible
+        {
+            get
+            {
+                return !_hidden;
             }
         }
     }

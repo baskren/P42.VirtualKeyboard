@@ -104,6 +104,8 @@ namespace P42.VirtualKeyboard
 			}
 		}
 
+		public bool IsVisible => false;
+
 		#region IDisposable Support
 		private bool _disposed = false; // To detect redundant calls
 		protected virtual void Dispose(bool disposing)
