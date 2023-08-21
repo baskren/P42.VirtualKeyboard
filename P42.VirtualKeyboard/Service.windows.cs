@@ -60,7 +60,7 @@ namespace P42.VirtualKeyboard
 
 		private void KeyboardService_Showing(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
-			Service.OnVisiblityChange(KeyboardVisibilityChange.Shown);
+			Service.OnVisiblityChange(true);
 			Height = InputPane.GetForCurrentView().OccludedRect.Height;
 			_displayInformation = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
 			_displayInformation.OrientationChanged += OnOrienationChanged;
@@ -68,7 +68,7 @@ namespace P42.VirtualKeyboard
 
 		private void KeyboardService_Hiding(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
-			Service.OnVisiblityChange(KeyboardVisibilityChange.Hidden);
+			Service.OnVisiblityChange(false);
 			Height = InputPane.GetForCurrentView().OccludedRect.Height;
 			if (_displayInformation != null)
 				_displayInformation.OrientationChanged -= OnOrienationChanged;
