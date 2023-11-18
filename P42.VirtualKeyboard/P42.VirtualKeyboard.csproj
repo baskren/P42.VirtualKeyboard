@@ -9,7 +9,7 @@
   <!-- NUGET PACKAGE GENERATION -->
   <PropertyGroup Condition=" $(P42_LocalNuGetFolderPath) != '' AND  '$(OS)' == 'Windows_NT'  AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('android')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('ios')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('mac')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('windows')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('tizen')) ">
    
-    <Version>4.9.45</Version>
+    <Version>5.0.48</Version>
     <PackageId Condition=" $(P42_TargetOnlyThisPlatform.ToLower.Contains('wasm')) ">$(MSBuildProjectName).Wasm</PackageId>
   
   	<PublishRepositoryUrl>true</PublishRepositoryUrl>
