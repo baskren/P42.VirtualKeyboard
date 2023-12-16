@@ -1,47 +1,65 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
 
   <PropertyGroup>
-    <AssemblyName>P42.VirtualKeyboard</AssemblyName>
-    <RootNamespace>P42.VirtualKeyboard</RootNamespace>
-    <NoWarn>Uno0001;VSX1000;CA1416</NoWarn>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) or '$(EnableWindowsTargeting)' == 'true'">$(TargetFrameworks);net7.0-windows10.0.19041</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworks);net7.0;net7.0-ios;net7.0-maccatalyst;net7.0-android</TargetFrameworks>
+    <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
+    <GenerateLibraryLayout>true</GenerateLibraryLayout>
   </PropertyGroup>
 
-  <!-- NUGET PACKAGE GENERATION -->
-  <PropertyGroup Condition=" $(P42_LocalNuGetFolderPath) != '' AND  '$(OS)' == 'Windows_NT'  AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('android')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('ios')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('mac')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('windows')) AND !$(P42_TargetOnlyThisPlatform.ToLower().Contains('tizen')) ">
-   
-    <Version>5.0.64</Version>
-    <PackageId Condition=" $(P42_TargetOnlyThisPlatform.ToLower.Contains('wasm')) ">$(MSBuildProjectName).Wasm</PackageId>
-  
-  	<PublishRepositoryUrl>true</PublishRepositoryUrl>
-  	<EmbedUntrackedSources>true</EmbedUntrackedSources>
-  	<IncludeSymbols>true</IncludeSymbols>
-  	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally> 
-
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Authors>Ben Askren</Authors>
-    <Company>42nd Parallel, LLC</Company>
-    <Description>Methods for Showing/Hiding a device's virtual keyboard and Events for when device's virtual keyboard is shown/hidding/resized</Description>
-    <Copyright>2022, 42nd Parallel</Copyright>
-    <PackageProjectUrl>https://github.com/baskren/P42.VirtualKeyboard</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/baskren/P42.VirtualKeyboard</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageIcon>P42.icon.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>iOS Android WinUI3 Virtual Keyboard</PackageTags>
-  </PropertyGroup>
-
-  <!-- SHARED RESOURCES -->
   <ItemGroup>
-    <None Include="..\P42.icon.png" Pack="true" PackagePath="\" />
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
-    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <Content Include="buildTransitive\**">
+      <PackagePath>buildTransitive</PackagePath>
+      <Pack>true</Pack>
+    </Content>
   </ItemGroup>
+
+
+  <Import Project="Directory.Build.TargetPlatform.props" />
+
   <ItemGroup>
-    <ProjectReference Include="..\..\P42.Uno.Xamarin.Essentials\Xamarin.Essentials\P42.Uno.Xamarin.Essentials.csproj" />
+    <PackageReference Include="Uno.WinUI" Version="5.0.64" />
   </ItemGroup>
+
+
+  <Choose>
+    <When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.4.231008000" />
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
+      </ItemGroup>
+      <ItemGroup>
+        <!--
+				If you encounter this error message:
+
+					error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
+					Please update to a newer .NET SDK in order to reference this assembly.
+
+				This means that the two packages below must be aligned with the "build" version number of
+				the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
+				must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
+				-->
+        <!-- <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" RuntimeFrameworkVersion="10.0.22621.28" />
+				<FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" TargetingPackVersion="10.0.22621.28" /> -->
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <Content Include="Assets\**" />
+        <Page Include="**\*.xaml" Exclude="bin\**\*.xaml;obj\**\*.xaml" />
+        <Compile Update="**\*.xaml.cs">
+          <DependentUpon>%(Filename)</DependentUpon>
+        </Compile>
+        <PriResource Include="**\*.resw" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+  <ItemGroup>
+    <UpToDateCheckInput Include="**\*.xaml" Exclude="bin\**\*.xaml;obj\**\*.xaml" />
+  </ItemGroup>
+
 
 </Project>
