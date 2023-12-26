@@ -8,14 +8,6 @@
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="buildTransitive\**">
-      <PackagePath>buildTransitive</PackagePath>
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
-
-
   <Import Project="Directory.Build.TargetPlatform.props" />
 
   <ItemGroup>
