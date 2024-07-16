@@ -1,55 +1,23 @@
 <Project>
-	<PropertyGroup>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
-		<DebugType>portable</DebugType>
-		<DebugSymbols>True</DebugSymbols>
+    <!--
+      Adding NoWarn to remove build warnings
+      NU1507: Warning when there are multiple package sources when using CPM with no source mapping
+      NETSDK1201: Warning that specifying RID won't create self containing app
+      PRI257: Ignore default language (en) not being one of the included resources (eg en-us, en-uk)
+    -->
+    <NoWarn>$(NoWarn);NU1507;NETSDK1201;PRI257</NoWarn>
+  </PropertyGroup>
 
-		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-
-		<NoWarn>$(NoWarn);CA1416;NU1507</NoWarn>
-
-		<DefaultLanguage>en</DefaultLanguage>
-
-		<IsAndroid>false</IsAndroid>
-		<IsIOS>false</IsIOS>
-		<IsMac>false</IsMac>
-		<IsMacCatalyst>false</IsMacCatalyst>
-		<IsWinAppSdk>false</IsWinAppSdk>
-	</PropertyGroup>
-
-	<Choose>
-		<When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-			<PropertyGroup>
-				<IsAndroid>true</IsAndroid>
-				<SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
-			</PropertyGroup>
-		</When>
-		<When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
-			<PropertyGroup>
-				<IsIOS>true</IsIOS>
-				<SupportedOSPlatformVersion>14.2</SupportedOSPlatformVersion>
-			</PropertyGroup>
-		</When>
-		<When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'macos'">
-			<PropertyGroup>
-				<IsMac>true</IsMac>
-				<SupportedOSPlatformVersion>10.14</SupportedOSPlatformVersion>
-			</PropertyGroup>
-		</When>
-		<When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
-			<PropertyGroup>
-				<IsMacCatalyst>true</IsMacCatalyst>
-				<SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
-			</PropertyGroup>
-		</When>
-		<When Condition="$(TargetFramework.Contains('windows10'))">
-			<PropertyGroup>
-				<IsWinAppSdk>true</IsWinAppSdk>
-				<SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
-				<TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
-			</PropertyGroup>
-		</When>
-	</Choose>
+  <!-- See https://aka.platform.uno/using-uno-sdk#implicit-packages for more information regarding the Implicit Packages version properties. -->
+  <PropertyGroup>
+    <UnoExtensionsVersion>4.1.23</UnoExtensionsVersion>
+    <UnoToolkitVersion>6.0.18</UnoToolkitVersion>
+    <UnoThemesVersion>5.0.13</UnoThemesVersion>
+    <UnoCSharpMarkupVersion>5.2.14</UnoCSharpMarkupVersion>
+  </PropertyGroup>
 </Project>

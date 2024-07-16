@@ -6,7 +6,10 @@
 
   <!-- SHARED ITEMS -->
   <ItemGroup>
+    <!--
     <ProjectReference Condition=" '$(Configuration)' != 'Release' " Include="..\..\P42.Uno.Xamarin.Essentials\Xamarin.Essentials\P42.Uno.Xamarin.Essentials.csproj" />
+    <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.Uno.Xamarin.Essentials" Version="5.2.132" />
+    -->
   </ItemGroup>
 
   <!-- PLATFORM SPECIFIC ITEMS -->
@@ -15,23 +18,5 @@
   <ItemGroup Condition=" !$(TargetFramework.Contains('windows')) ">
   </ItemGroup>
   
-  <Choose>
-    <When Condition="  $(MSBuildProjectName.ToLower().Contains('wasm'))  OR  $(P42_TargetPlatform.ToLower().Contains('wasm'))  OR  $(SolutionName.ToLower().Contains('wasm')) ">
-      <ItemGroup>
-        <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.Uno.Xamarin.Essentials.Wasm" Version="5.1.104" />
-      </ItemGroup>
-    </When>
-    <When Condition="  $(MSBuildProjectName.ToLower().Contains('skia'))  OR  $(P42_TargetPlatform.ToLower().Contains('skia'))  OR  $(SolutionName.ToLower().Contains('skia')) ">
-      <ItemGroup>
-        <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.Uno.Xamarin.Essentials.Skia" Version="5.1.104" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.Uno.Xamarin.Essentials" Version="5.1.104" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-
 
 </Project>
