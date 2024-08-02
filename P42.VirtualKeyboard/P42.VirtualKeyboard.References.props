@@ -6,10 +6,6 @@
 
   <!-- SHARED ITEMS -->
   <ItemGroup>
-    <!--
-    <ProjectReference Condition=" '$(Configuration)' != 'Release' " Include="..\..\P42.Uno.Xamarin.Essentials\Xamarin.Essentials\P42.Uno.Xamarin.Essentials.csproj" />
-    <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.Uno.Xamarin.Essentials" Version="5.2.132" />
-    -->
   </ItemGroup>
 
   <!-- PLATFORM SPECIFIC ITEMS -->
