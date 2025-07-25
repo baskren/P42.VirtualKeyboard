@@ -1,5 +1,6 @@
 
 #if __ANDROID__
+using System.Threading.Tasks;
 using Android.Content;
 #endif
 using Microsoft.UI.Xaml;
@@ -12,8 +13,8 @@ namespace P42.VirtualKeyboard
     /// </summary>
     public static class Service
     {
-        static Service()
-            => Init();
+        //static Service()
+        //    => Init();
 
         internal static bool IsAvailable => Instance is not null;
 
@@ -32,7 +33,9 @@ namespace P42.VirtualKeyboard
 #if __ANDROID__
 
         public static void Init()
-            => Instance = new AndroidService();
+        {
+            Instance = new AndroidService();
+        }
 
 
 #elif __IOS__

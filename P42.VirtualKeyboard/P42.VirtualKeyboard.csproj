@@ -31,7 +31,6 @@
     <UnoFeatures></UnoFeatures>
     -->
 
-    <BuildInParallel>true</BuildInParallel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <UnoFeatures>
@@ -61,5 +60,5 @@
     <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" TargetingPackVersion="10.0.22621.28" /> -->
   </ItemGroup>
 
-  
+
 </Project>

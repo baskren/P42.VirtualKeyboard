@@ -1,0 +1,34 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- Display name -->
+    <ApplicationTitle>Demo</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.companyname.demo</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>Demo</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>Demo powered by Uno Platform.</Description>
+
+    <!--
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Condition=" '$(Configuration)' != 'Release' " Include="..\P42.VirtualKeyboard\P42.VirtualKeyboard.csproj" />
+    <PackageReference Condition=" '$(Configuration)' == 'Release' " Include="P42.VirtualKeyboard" />
+  </ItemGroup>
+
+</Project>

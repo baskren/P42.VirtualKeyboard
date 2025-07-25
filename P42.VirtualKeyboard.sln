@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P42.VirtualKeyboard", "P42.VirtualKeyboard\P42.VirtualKeyboard.csproj", "{B4D1F372-010C-4128-9E61-DBD9997C81A7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo\Demo.csproj", "{30753149-5C27-4B9E-8546-C799AE7DCB7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{30753149-5C27-4B9E-8546-C799AE7DCB7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -13,7 +13,7 @@ namespace P42.VirtualKeyboard
 
         const double Threshold = 50;
 
-        static Activity _activity;
+        static Activity? _activity;
         static Activity Activity
         {
             get
@@ -41,12 +41,19 @@ namespace P42.VirtualKeyboard
             set => _rootView = value;
         }
 
+        
+        
         static async Task<View> GetRootViewAsync()
         {
-            while (Activity.FindViewById(Android.Resource.Id.Content) is null)
+            var view = Activity.FindViewById(Android.Resource.Id.Content);
+            
+            while (view is null)
+            {
                 await Task.Delay(200);
+                view = Activity.FindViewById(Android.Resource.Id.Content);
+            }
 
-            return Activity.FindViewById(Android.Resource.Id.Content);
+            return view;
         }
 
         public bool IsHardwareKeyboardActive
