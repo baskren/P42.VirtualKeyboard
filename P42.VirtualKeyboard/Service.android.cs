@@ -183,7 +183,7 @@ namespace P42.VirtualKeyboard
             var height = _startRect.Height() - currentRect.Height();
 
 
-            System.Diagnostics.Debug.WriteLine($"RootLayoutListener.OnGlobalLayout : [{_startRect.Height()}] [{currentRect.Height()}]");
+            //System.Diagnostics.Debug.WriteLine($"RootLayoutListener.OnGlobalLayout : [{_startRect.Height()}] [{currentRect.Height()}]");
 
 
             HeightChanged?.Invoke(this, height / Scale);
