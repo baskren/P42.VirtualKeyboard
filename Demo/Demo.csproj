@@ -26,7 +26,6 @@
       https://aka.platform.uno/singleproject-features
     -->
     <UnoFeatures>
-      SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
 

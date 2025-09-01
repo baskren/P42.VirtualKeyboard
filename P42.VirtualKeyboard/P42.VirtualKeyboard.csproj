@@ -34,7 +34,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <UnoFeatures>
-      SkiaRenderer
     </UnoFeatures>
 
 
