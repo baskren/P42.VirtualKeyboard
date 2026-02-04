@@ -1,222 +1,239 @@
-using System;
-using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Views.InputMethods;
 using Java.Util;
 using Android.Views;
+using AndroidX.Core.View;
 
-namespace P42.VirtualKeyboard
+namespace P42.VirtualKeyboard;
+
+public class AndroidService : IKeyboardService
 {
-    public class AndroidService : IKeyboardService
+
+    private static Activity Activity
     {
+        get => field ?? throw new Exception("P42.VirtualKeyboard not initialized.  Call P42.VirtualKeyboard.AndroidService.Init(this) in MainActivity.Android.cs:");
+        set;
+    }
 
-        const double Threshold = 50;
-
-        static Activity? _activity;
-        static Activity Activity
+    private View RootView
+    {
+        get
         {
-            get
-            {
-                if (_activity is null)
-                    throw new Exception("P42.VirtualKeyboard not initialized.  Call P42.VirtualKeyboard.AndroidService.Init(this) in MainActivity.Android.cs:");
-                return _activity;
-            }
-            set => _activity = value;
+            if (field is not null)
+                return field;
+
+            var task = Task.Run(GetRootViewAsync);
+            task.Wait();
+            field = task.Result;
+            return field ?? throw new Exception("P42.VirtualKeyboard: RootView not found.");
         }
+    }
 
-        View _rootView;
-        View RootView
+
+    private static async Task<View> GetRootViewAsync()
+    {
+        while (true)
         {
-            get
-            {
-                if (_rootView is null)
-                {
-                    var task = Task.Run(GetRootViewAsync);
-                    task.Wait();
-                    _rootView = task.Result;
-                }
-                return _rootView;
-            }
-            set => _rootView = value;
+            if (Activity.FindViewById(Android.Resource.Id.Content) is { } view)
+                return view;
+            await Task.Delay(200);
         }
+    }
 
-        
-        
-        static async Task<View> GetRootViewAsync()
+
+    private static Android.Content.Res.Configuration Configuration => field ??= Activity.Resources?.Configuration ?? throw new Exception("P42.VirtualKeyboard not initialized.  Call P42.VirtualKeyboard.AndroidService.Init(this) in MainActivity.Android.cs:");
+
+    public bool IsHardwareKeyboardActive
+        => Configuration.HardKeyboardHidden == Android.Content.Res.HardKeyboardHidden.No;
+
+    public void Hide()
+    {
+        if (Android.OS.Build.VERSION.SdkInt >= (Android.OS.BuildVersionCodes)30)
+#pragma warning disable CA1416 // Validate platform compatibility
+            RootView.WindowInsetsController?.Hide(WindowInsets.Type.Ime());
+#pragma warning restore CA1416 // Validate platform compatibility
+        else
         {
-            var view = Activity.FindViewById(Android.Resource.Id.Content);
-            
-            while (view is null)
-            {
-                await Task.Delay(200);
-                view = Activity.FindViewById(Android.Resource.Id.Content);
-            }
-
-            return view;
+            if (Activity.GetSystemService(Context.InputMethodService) is InputMethodManager imm)
+                imm.HideSoftInputFromWindow(RootView.WindowToken, HideSoftInputFlags.None);
         }
+    }
 
-        public bool IsHardwareKeyboardActive
-            => Activity.Resources.Configuration.HardKeyboardHidden == Android.Content.Res.HardKeyboardHidden.No;
 
-        public void Hide()
-            => RootView.WindowInsetsController.Hide(WindowInsets.Type.Ime());
-        
-
-        public void Show()
-            => RootView.WindowInsetsController.Show(WindowInsets.Type.Ime());
-        
-
-        public static void Init(Activity activity)
-            => Activity = activity;
-
-        public AndroidService()
+    public void Show()
+    {
+        if (Android.OS.Build.VERSION.SdkInt >= (Android.OS.BuildVersionCodes)30)
+#pragma warning disable CA1416 // Validate platform compatibility
+            RootView.WindowInsetsController?.Show(WindowInsets.Type.Ime());
+#pragma warning restore CA1416 // Validate platform compatibility
+        else
         {
-            var rootLayoutListener = new RootLayoutListener(RootView);
-            rootLayoutListener.HeightChanged += OnHeightChanged;
-            RootView.ViewTreeObserver.AddOnGlobalLayoutListener(rootLayoutListener);
+            if (Activity.GetSystemService(Context.InputMethodService) is InputMethodManager imm)
+                imm.ShowSoftInput(RootView, ShowFlags.Implicit);
         }
+    }
+    
+
+    public static void Init(Activity activity)
+        => Activity = activity;
+
+    public AndroidService()
+    {
+        var rootLayoutListener = new RootLayoutListener(RootView!);
+        rootLayoutListener.HeightChanged += OnHeightChanged;
+        RootView!.ViewTreeObserver?.AddOnGlobalLayoutListener(rootLayoutListener);
+    }
+
+    private double _oldHeight;
+    private void OnHeightChanged(object? sender, double e)
+    {
+        Service.OnHeightChanged(e);
+        if (_oldHeight > 0 == e > 0)
+            return;
+
+        _oldHeight = e;
+        Service.OnVisibilityChange(e > 0);
+    }
 
 
-        private void OnHeightChanged(object sender, double e)
-            => Height = RootView.RootWindowInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
-
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1422:Validate platform compatibility", Justification = "<Pending>")]
-        public string LanguageRegion
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1422:Validate platform compatibility", Justification = "<Pending>")]
+    public string LanguageRegion
+    {
+        get
         {
-            get
-            {
-                var imm = (InputMethodManager)Activity.GetSystemService(Context.InputMethodService);
-                var ims = imm.CurrentInputMethodSubtype;
-                string result;
-                //if (Android.OS.Build.VERSION.SDK_INT > 24)
-                if (Android.OS.Build.VERSION.SdkInt > Android.OS.BuildVersionCodes.M)
-                    result = ims?.LanguageTag.Replace('_', '-');
-                else
-                    result = ims?.Locale.Replace('_', '-');
+            if (Activity.GetSystemService(Context.InputMethodService) is not InputMethodManager imm)
+                return "en";
+            if (imm.CurrentInputMethodSubtype is not {} ims)
+                return "en";
 
-                if (string.IsNullOrWhiteSpace(result))
-                {
-                    var language = Locale.Default.Language;
-                    var country = Locale.Default.Country;
+            var result = Android.OS.Build.VERSION.SdkInt >= (Android.OS.BuildVersionCodes)24 
+#pragma warning disable CA1416
+                ? ims.LanguageTag.Replace('_', '-') 
+#pragma warning restore CA1416
+                : ims.Locale.Replace('_', '-');
 
-                    if (string.IsNullOrWhiteSpace(language))
-                        return country;
-                    if (string.IsNullOrWhiteSpace(country))
-                        return language;
-                    return language + "-" + country;
-                }
+            if (!string.IsNullOrWhiteSpace(result))
                 return result;
-            }
-        }
 
+            var language = Locale.Default.Language;
+            var country = Locale.Default.Country;
 
-        double _height;
-        public double Height
-        {
-            get => _height;
-            private set
-            {
-                if (Math.Abs(_height - value) > 0.1)
-                {
-                    _height = value;
-                    Service.OnHeightChanged(_height);
-                    IsVisible = value > Threshold;
-                }
-                _height = value;
-            }
-        }
-
-        bool _isVisible;
-        bool _isVisibleSet;
-        public bool IsVisible
-        {
-            get
-            {
-                if (!_isVisibleSet)
-                {
-                    var height = RootView.RootWindowInsets?.GetInsets(WindowInsets.Type.Ime()).Bottom ?? 0;
-                    _isVisible = height > Threshold;
-                    _isVisibleSet = true;
-                }
-                return _isVisible;
-            }
-            set
-            {
-                if (_isVisible != value)
-                {
-                    _isVisible = value;
-                    _isVisibleSet = true;
-                    Service.OnVisiblityChange(_isVisible);
-                }
-            }
+            if (string.IsNullOrWhiteSpace(language) && string.IsNullOrWhiteSpace(country))
+                return "en";
+            if (string.IsNullOrWhiteSpace(language))
+                return country;
+            if (string.IsNullOrWhiteSpace(country))
+                return language;
+            return language + "-" + country;
         }
     }
 
-    class RootLayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+
+    public double Height
     {
-        //int[] _discrepancy = { 0 };
-
-        readonly Android.Graphics.Rect _startRect;
-        readonly View _rootView;
-
-        public event EventHandler<double> HeightChanged;
-
-
-        public RootLayoutListener(View view)
+        get
         {
 
-            while (view.Parent is ViewGroup viewGroup)
-                view = viewGroup;
-
-            _rootView = view;
-            _startRect = new Android.Graphics.Rect();
-            _rootView.GetWindowVisibleDisplayFrame(_startRect);
-        }
-
-        public void OnGlobalLayout()
-        {
-            Android.Graphics.Rect currentRect = new();
-            _rootView.GetWindowVisibleDisplayFrame(currentRect);
-
-            var height = _startRect.Height() - currentRect.Height();
-
-
-            //System.Diagnostics.Debug.WriteLine($"RootLayoutListener.OnGlobalLayout : [{_startRect.Height()}] [{currentRect.Height()}]");
-
-
-            HeightChanged?.Invoke(this, height / Scale);
-        }
-
-        bool _disposed;
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && !_disposed)
+#pragma warning disable CA1416 // Validate platform compatibility
+            if (Android.OS.Build.VERSION.SdkInt >= (Android.OS.BuildVersionCodes)30)
             {
-                _disposed = true;
-                _startRect?.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        Java.Lang.Ref.WeakReference _displayMetricsReference;
-        Android.Util.DisplayMetrics DisplayMetrics
-        {
-            get
-            {
-                _displayMetricsReference ??= new Java.Lang.Ref.WeakReference(global::Android.App.Application.Context.Resources.DisplayMetrics);
-                var displayMetrics = (Android.Util.DisplayMetrics)_displayMetricsReference.Get();
-                if (displayMetrics == null)
+                if (RootView.RootWindowInsets is {} rootInsets)
+                    field = rootInsets.GetInsets(WindowInsets.Type.Ime()).Bottom;
+#pragma warning restore CA1416 // Validate platform compatibility
+                else if (ViewCompat.GetRootWindowInsets(RootView) is { } insets)
                 {
-                    displayMetrics = global::Android.App.Application.Context.Resources.DisplayMetrics;
-                    _displayMetricsReference = new Java.Lang.Ref.WeakReference(displayMetrics);
+                    // Get specific inset types (e.g., status bar, navigation bar)
+                    var systemBars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
+                    //var statusBar = insets.GetInsets(WindowInsetsCompat.Type.StatusBars());
+                    //var navigationBars = insets.GetInsets(WindowInsetsCompat.Type.NavigationBars());
+
+                    field = systemBars?.Bottom ?? 0;
                 }
-                return displayMetrics;
+                else
+                    field = 0;
             }
+            else
+            {
+#pragma warning disable CA1422 // Validate platform compatibility
+                var frame = new Android.Graphics.Rect();
+                RootView.GetWindowVisibleDisplayFrame(frame);
+
+                int screenHeight = RootView.Height;
+                field = screenHeight - frame.Bottom;
+#pragma warning restore CA1422 // Validate platform compatibility
+            }
+
+            return field;
         }
-
-        public float Scale => DisplayMetrics.Density;
-
     }
+
+    public bool IsVisible => Height > 0;
+    
+}
+
+class RootLayoutListener : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
+{
+    //int[] _discrepancy = { 0 };
+
+    private readonly Android.Graphics.Rect _startRect;
+    private readonly View _rootView;
+
+    public event EventHandler<double>? HeightChanged;
+
+
+    public RootLayoutListener(View view)
+    {
+
+        while (view.Parent is ViewGroup viewGroup)
+            view = viewGroup;
+
+        _rootView = view;
+        _startRect = new Android.Graphics.Rect();
+        _rootView.GetWindowVisibleDisplayFrame(_startRect);
+    }
+
+    public void OnGlobalLayout()
+    {
+        Android.Graphics.Rect currentRect = new();
+        _rootView.GetWindowVisibleDisplayFrame(currentRect);
+
+        var height = _startRect.Height() - currentRect.Height();
+
+
+        //System.Diagnostics.Debug.WriteLine($"RootLayoutListener.OnGlobalLayout : [{_startRect.Height()}] [{currentRect.Height()}]");
+
+
+        HeightChanged?.Invoke(this, height / Scale);
+    }
+
+    private bool _disposed;
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && !_disposed)
+        {
+            _disposed = true;
+            _startRect.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    Java.Lang.Ref.WeakReference? _displayMetricsReference;
+    Android.Util.DisplayMetrics? DisplayMetrics
+    {
+        get
+        {
+            _displayMetricsReference ??= new Java.Lang.Ref.WeakReference(Android.App.Application.Context.Resources?.DisplayMetrics);
+            var displayMetrics = (Android.Util.DisplayMetrics?)_displayMetricsReference.Get();
+            if (displayMetrics == null)
+            {
+                displayMetrics = Android.App.Application.Context.Resources?.DisplayMetrics;
+                _displayMetricsReference = new Java.Lang.Ref.WeakReference(displayMetrics);
+            }
+            return displayMetrics;
+        }
+    }
+
+    public float Scale => DisplayMetrics?.Density ?? 1.0f;
+
 }
